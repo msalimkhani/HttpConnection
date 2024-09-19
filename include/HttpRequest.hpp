@@ -60,4 +60,8 @@ public:
             printf("Key: %s, Value: %s\r\n", item.first.c_str(), item.second.c_str());
         }
     }
+
+    void clear(){
+        requestDictionary.clear();
+    }
 };

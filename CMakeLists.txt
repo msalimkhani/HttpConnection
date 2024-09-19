@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 3.26)
 project(HtpConnection)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_DEBUG_POSTFIX d)
 include_directories(include
                     src)
 file(GLOB SRCS "include/*" "src/*")
 add_executable(HttpConnection ${SRCS})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set_target_properties(HttpConnection PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+
+set_target_properties( HttpConnection PROPERTIES LIBRARY_OUTPUT_DIRECTORY "Release" )
+set_target_properties( HttpConnection PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG "Debug"  )
+set_target_properties( HttpConnection PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE "Release"  )
+set(CMAKE_C_FLAGS_DEBUG "-g -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
