@@ -7,8 +7,7 @@ m_client_fd(), m_incomingMessage(), m_ip_addr(ip_addr),
 m_port(port), m_server_fd(), m_server_message(), m_serverAddress(),
 m_serverAddress_len(sizeof(m_serverAddress))
 {
-    _logger.Log("HttpConnection: Constructor Called.");
-    strartServer();
+    _logger.Log("Instance Created.");
 }
 
 HttpConnection::~HttpConnection()
@@ -50,15 +49,42 @@ void HttpConnection::startListen(){
         _logger.LogError("Socket Listen Failed");
     }
 
-    _logger.Log(fmt::format("\n*** Listening on ADDRESS: {0}; PORT: {1} ***\n", 
+    _logger.Log(fmt::format("Server Listening on http://{0}:{1} ***\n", 
     inet_ntoa(m_serverAddress.sin_addr)  ,
     ntohs(m_serverAddress.sin_port)));
+    
+    processConnection();
+}
 
-    int bytesReceived;
+void HttpConnection::acceptConnection(int &new_socket){
+    new_socket= accept(m_server_fd, (sockaddr *)&m_serverAddress, &m_serverAddress_len);
 
+    if(new_socket < 0)
+    {
+        _logger.LogError(fmt::format("Server Failed to Accept incoming connection from ADDRESS: {0}; PORT: {1}.\n", inet_ntoa(m_serverAddress.sin_addr), ntohs(m_serverAddress.sin_port)));
+    }
+}
+
+void HttpConnection::sendResponse(const string& response){
+    long bytesSent;
+
+        bytesSent = write(m_client_fd, response.c_str(), response.size());
+
+        if (bytesSent != response.size())
+        {
+            _logger.Log("Error while sending response to the client.");
+        }
+}
+
+void HttpConnection::run(){
+    strartServer();
+}
+
+void HttpConnection::processConnection(){
     while (true)
     {
-        _logger.Log("\n====== Waiting for a new connection ======\n");
+        int bytesReceived;
+
         acceptConnection(m_client_fd);
 
         char buffer[BUFSIZ] = {0};
@@ -67,21 +93,12 @@ void HttpConnection::startListen(){
         {
            _logger.LogError("Failed to read bytes from client socket connection");
         }
-        _logger.Log(buffer);
         HttpRequest req;
         vector<string> lines;
 
         lines = split(buffer, "\n");
-        // auto token = strtok(buffer, "\n");
-        // while(token != NULL)
-        // {
-        //     lines.push_back(token);
-        //     token = strtok(NULL, "\n");
-        // }
 
-        
         auto request = lines.at(0);
-        cout << "firstLine: " << request << endl;
         char *met, *pat;
         met = (char *)malloc(BUFSIZ * sizeof(char));
         pat = (char *)malloc(BUFSIZ * sizeof(char));
@@ -105,50 +122,12 @@ void HttpConnection::startListen(){
         }
         
 
-        _logger.Log("\n------ Receivedlist Request from client ------\n");
-        req.print();
+        _logger.Log(fmt::format("\033[0;32m{0} {1}\033[0m\n", req.getMethod(), req.getPath()));
 
         std::string htmlFile = fmt::format("<!DOCTYPE html><html lang=\"en\"><body><h1> HOME </h1><p>{0}</p></body></html>", req.toString());
         string res =  "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: {0}\nServer: MahdiServer(Linux Ubuntu)\n\n{1}";
         string ss = fmt::format(res, htmlFile.size(), htmlFile);
         sendResponse(ss);
         close(m_client_fd);
-        }
-}
-
-void HttpConnection::acceptConnection(int &new_socket){
-    new_socket= accept(m_server_fd, (sockaddr *)&m_serverAddress, &m_serverAddress_len);
-
-    if(new_socket < 0)
-    {
-        fmt::system_error(1, "Server Failed to Accept incoming connection from ADDRESS: {0}; PORT: {1}", inet_ntoa(m_serverAddress.sin_addr), ntohs(m_serverAddress.sin_port));
     }
-}
-
-void HttpConnection::sendResponse(const string& response){
-    long bytesSent;
-
-        bytesSent = write(m_client_fd, response.c_str(), response.size());
-
-        if (bytesSent == response.size())
-        {
-            _logger.Log("\n------ Server Response sent to client ------\n");
-        }
-        else
-        {
-            _logger.Log("Error sending response to client");
-        }
-}
-
-std::list<string> HttpConnection::tokenize(const string& str, const string& del)
-{
-    list<string> res;
-    int start, end = -1*del.size();
-    do {
-        start = end + del.size();
-        end = str.find(del, start);
-        res.push_back(str.substr(start, end - start));
-    } while (end != -1);
-
-    return res;
 }

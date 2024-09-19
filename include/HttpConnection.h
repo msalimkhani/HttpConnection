@@ -26,11 +26,12 @@ private:
     void strartServer();
     void closeServer();
     void startListen();
+    void processConnection();
     void acceptConnection(int &new_socket);
     void sendResponse(const string& response);
-    list<string> tokenize(const string& str, const string& del);
     /* data */
 public:
     HttpConnection(string ip_addr, int port);
+    void run();
     ~HttpConnection();
 };

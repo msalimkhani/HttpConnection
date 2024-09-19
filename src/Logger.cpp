@@ -1,17 +1,16 @@
 #include "Logger.h"
 
 Logger::Logger(){
-    this->Log("Logger: Constructor Called!");
+    this->Log("Logger: Initialized");
 }
 
 Logger::~Logger(){
-    this->Log("Logger: Destructor Called");
 }
 
 void Logger::Log(const string &msg){
-    fmt::print("HttpConnection: {0}\n", msg);
+    fmt::print("\033[0;32mHttpConnection:\033[0m {0}\n", msg);
 }
 void Logger::LogError(const string &msg)
 {
-    fmt::system_error(1, "HttpConnection: {0}\n", msg);
+    fmt::system_error(1, "\033[0;32mHttpConnection:\033[0m \033[0;31m{0}\033[0m\n", msg);
 }
