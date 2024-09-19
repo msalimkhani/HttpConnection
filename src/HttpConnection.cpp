@@ -77,7 +77,15 @@ void HttpConnection::sendResponse(const string& response){
 }
 
 void HttpConnection::run(){
-    strartServer();
+    try
+    {
+        strartServer();
+    }
+    catch(const std::exception& e)
+    {
+        cerr << fmt::format("\033[0;32mHttpConnection:\033[0m \033[0;31m{0}\033[0m", e.what()) << endl;
+    }
+    
 }
 
 void HttpConnection::processConnection(){
@@ -93,9 +101,9 @@ void HttpConnection::processConnection(){
         {
            _logger.LogError("Failed to read bytes from client socket connection");
         }
-        HttpRequest req;
-        vector<string> lines;
 
+        vector<string> lines;
+        HttpRequest req;
         lines = split(buffer, "\n");
 
         auto request = lines.at(0);
@@ -112,7 +120,7 @@ void HttpConnection::processConnection(){
             const char *cStr = item.c_str();
             char *buff = (char *)malloc(strlen(cStr) * sizeof(char));
             sprintf(buff, "%s", cStr);
-            auto splitted = split(buff, ": ");
+            auto splitted = split(buff, ":");
             if(splitted.size() > 1)
             {
                 auto key = splitted[0];
@@ -121,13 +129,37 @@ void HttpConnection::processConnection(){
             }
         }
         
-
+        HttpResponse response;
         _logger.Log(fmt::format("\033[0;32m{0} {1}\033[0m\n", req.getMethod(), req.getPath()));
 
-        std::string htmlFile = fmt::format("<!DOCTYPE html><html lang=\"en\"><body><h1> HOME </h1><p>{0}</p></body></html>", req.toString());
+        std::string htmlFile = fmt::format("<!DOCTYPE html><html lang=\"en\"><body><h1> {0} </h1><p>{1}</p></body></html>", req.getPath() ,req.toString());
+        
+        response.setResult(htmlFile);
+        try
+        {
+            auto callback = routes.at(req.getPath());
+
+            callback(req, &response);
+        }
+        catch(const std::exception& e)
+        {
+            cerr << fmt::format("\033[0;32mHttpConnection:\033[0m \033[0;31m{0}\033[0m", e.what()) << endl;
+            std::string htmlFile = fmt::format("<!DOCTYPE html><html lang=\"en\"><body><h1> {0} NotFound </h1></body></html>", req.getPath());
+            string res =  "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: {0}\nServer: MahdiServer(Linux Ubuntu)\n\n{1}";
+            string ss = fmt::format(res, htmlFile.size(), htmlFile);
+            response.setResult(ss);
+        }
+        
+
         string res =  "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: {0}\nServer: MahdiServer(Linux Ubuntu)\n\n{1}";
-        string ss = fmt::format(res, htmlFile.size(), htmlFile);
+        string ss = fmt::format(res, response.getResult().size(), response.getResult());
         sendResponse(ss);
         close(m_client_fd);
     }
+}
+
+HttpConnection* HttpConnection::mapPath(string path, std::function<void(HttpRequest, HttpResponse*)> callback)
+{
+    routes.insert({path, callback});
+    return this;
 }

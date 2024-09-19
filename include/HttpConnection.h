@@ -2,12 +2,15 @@
 #include <iostream>
 #include "Logger.h"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 #include <vector>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <map>
 #include <list>
+#include <functional>
 
 using namespace std;
 
@@ -23,6 +26,7 @@ private:
     unsigned int m_serverAddress_len;
     string m_server_message;
     Logger _logger;
+    map<string, std::function<void(HttpRequest, HttpResponse*)>> routes;
     void strartServer();
     void closeServer();
     void startListen();
@@ -33,5 +37,6 @@ private:
 public:
     HttpConnection(string ip_addr, int port);
     void run();
+    HttpConnection* mapPath(string path, std::function<void(HttpRequest, HttpResponse*)> callback);
     ~HttpConnection();
 };
