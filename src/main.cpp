@@ -8,6 +8,10 @@ int main(int argc, char const *argv[])
         string resHtml = "<!DOCTYPE html><html lang=\"en\"><body><h1> Home </h1></body></html>";
         res->setResult(resHtml);
     });
+    conn->mapPath("/", [](HttpRequest req, HttpResponse* res){
+        string resHtml = "<!DOCTYPE html><html lang=\"en\"><body><h1> Home </h1></body></html>";
+        res->setResult(resHtml);
+    });
     conn->mapPath("/about", [](HttpRequest req, HttpResponse* res){
         string resHtml = "<!DOCTYPE html><html lang=\"en\"><body><h1> About </h1></body></html>";
         res->setResult(resHtml);

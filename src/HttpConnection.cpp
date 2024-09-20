@@ -84,6 +84,8 @@ void HttpConnection::run(){
     catch(const std::exception& e)
     {
         cerr << fmt::format("\033[0;32mHttpConnection:\033[0m \033[0;31m{0}\033[0m", e.what()) << endl;
+        cerr << "server_fd: " << this->m_server_fd << endl;
+        closeServer();
     }
     
 }
@@ -120,7 +122,7 @@ void HttpConnection::processConnection(){
             const char *cStr = item.c_str();
             char *buff = (char *)malloc(strlen(cStr) * sizeof(char));
             sprintf(buff, "%s", cStr);
-            auto splitted = split(buff, ":");
+            auto splitted = split(buff, ":", 2);
             if(splitted.size() > 1)
             {
                 auto key = splitted[0];
@@ -147,7 +149,8 @@ void HttpConnection::processConnection(){
             std::string htmlFile = fmt::format("<!DOCTYPE html><html lang=\"en\"><body><h1> {0} NotFound </h1></body></html>", req.getPath());
             string res =  "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: {0}\nServer: MahdiServer(Linux Ubuntu)\n\n{1}";
             string ss = fmt::format(res, htmlFile.size(), htmlFile);
-            response.setResult(ss);
+            //response.setResult(ss);
+            sendResponse(ss);
         }
         
 
