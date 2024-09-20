@@ -56,10 +56,6 @@ jobs:
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
-    - name: Create a Release in a GitHub Action
-      uses: comnoco/create-release-action@v2.0.5
-      with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
