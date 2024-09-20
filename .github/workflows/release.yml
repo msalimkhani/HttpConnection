@@ -36,4 +36,3 @@ jobs:
         release_name: ${{ steps.date.outputs.date }}
         draft: false
         prerelease: false
-        files: ${{ runner.workspace }}/HttpConnection
