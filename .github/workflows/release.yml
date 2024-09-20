@@ -1,29 +1,44 @@
-on:
-  push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
-name: Create Release
-
+name: CMake release build
+on: [push, pull_request]
 jobs:
   build:
-    name: Create Release
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Changes in this Release
-            - First Change
-            - Second Change
-          draft: false
-          prerelease: false
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Create build dir
+      run: cmake -E make_directory ${{ runner.workspace }}/build
+    - name: Configure
+      working-directory: ${{ runner.workspace }}/build
+      run: cmake ${{ github.workspace }} -DCMAKE_BUILD_TYPE=Release
+    - name: Build
+      working-directory: ${{ runner.workspace }}/build
+      run: cmake --build . --config Release
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: HttpConnection
+        path: ${{ runner.workspace }}/HttpConnection
+    - name: Make GitHub release if tagged
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v0.1.5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # Note-worthy description of changes in release
+        #body: # optional
+        # Path to load note-worthy description of changes in release from
+        #body_path: # optional
+        # Gives the release a custom name. Defaults to tag name
+        #name: # optional
+        # Creates a draft release. Defaults to false
+        draft: true # optional
+        # Identify the release as a prerelease. Defaults to false
+        prerelease: true # optional
+        # Newline-delimited list of path globs for asset files to upload
+        # TODO prepare proper zip with useful things
+        files: ${{ runner.workspace }}/HttpConnection
