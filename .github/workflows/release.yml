@@ -24,7 +24,6 @@ jobs:
         name: HttpConnection
         path: ${{ runner.workspace }}/HttpConnection
     - name: Make GitHub release if tagged
-      if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v0.1.5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
