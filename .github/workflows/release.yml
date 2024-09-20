@@ -23,6 +23,8 @@ jobs:
       with:
         name: HttpConnection
         path: ${{ runner.workspace }}/HttpConnection
+    - name: Create Git tag
+      run: git tag v
     - name: Make GitHub release if tagged
       uses: softprops/action-gh-release@v0.1.5
       env:
