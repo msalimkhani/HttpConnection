@@ -14,7 +14,6 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   GIT_TAG        e69e5f977d458f2650bb346dadf2ad30c5320281) # 10.2.1
 FetchContent_MakeAvailable(fmt)
-
 target_link_libraries(HttpConnection fmt::fmt)
 set_target_properties( HttpConnection PROPERTIES LIBRARY_OUTPUT_DIRECTORY "Release" )
 set_target_properties( HttpConnection PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG "Debug"  )
